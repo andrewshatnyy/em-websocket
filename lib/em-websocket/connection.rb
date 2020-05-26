@@ -180,6 +180,7 @@ module EventMachine
       # closing state, or if the passed in data is not valid UTF-8
       #
       def send_text(data)
+        text = data.dup
         # If we're using Ruby 1.9, be pedantic about encodings
         if ENCODING_SUPPORTED
           # Also accept ascii only data in other encodings for convenience
@@ -188,20 +189,20 @@ module EventMachine
           end
           # This labels the encoding as binary so that it can be combined with
           # the BINARY framing
-          data.force_encoding(BINARY)
+          text.force_encoding(BINARY)
         else
           # TODO: Check that data is valid UTF-8
         end
 
         if @handler
-          @handler.send_text_frame(data)
+          @handler.send_text_frame(text)
         else
           raise WebSocketError, "Cannot send data before onopen callback"
         end
 
         # Revert data back to the original encoding (which we assume is UTF-8)
         # Doing this to avoid duping the string - there may be a better way
-        data.force_encoding(UTF8) if ENCODING_SUPPORTED
+        text.force_encoding(UTF8) if ENCODING_SUPPORTED
         return nil
       end
 
